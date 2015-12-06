@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html ng-app="SingleQubitVisualizer">
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>blah</title>
+
+    <link rel="stylesheet" href="libraries/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="bootstrap.css">
+    <link rel="stylesheet" href="libraries/codemirror.min.css">
+    <link rel="stylesheet" href="codeMirrorTheme.css">
+
+    <script src="libraries/codemirror.min.js"></script>
+    <script src="libraries/codemirror.javascript.min.js"></script>
+    <script src="libraries/codemirror.diff.min.js"></script>
+
+    <script src="libraries/plotly.min.js"></script> <!-- TODO: Switch to AMD loaded module -->
+
+    <script src="libraries/mathlex.min.js"></script>
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <script src="libraries/angular.min.js"></script>
+    <script data-main="main" src="libraries/require.min.js"></script>
+
+</head>
+<body ng-controller="Controller as ctrl" style="background-color: #333333">
+    <div class="container">
+        <div id="insertionPoint"></div>
+        <div id="polarChart"></div>
+        <div>
+            <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1">State |x> =</span>
+                <input type="text" class="form-control" placeholder="a |u> + b |v>" aria-describedby="basic-addon1" ng-model="ctrl.stateVec" ng-change="ctrl.stateUpdated()">
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon" id="basic-addon2">Basis |u> =</span>
+                <input type="text" class="form-control" placeholder="c |0> + d |1>" aria-describedby="basic-addon1" ng-model="ctrl.basisVec" ng-change="ctrl.basisUpdated()">
+            </div>
+        </div>
+        <div id="MathJaxRepresentations">
+            <span>$${{ctrl.stateVec}}$$</span><br/>
+            <span>$${{ctrl.basisVec}}$$</span><br/>
+            <span>$${{ctrl.basisVecPerp}}$$</span><br/>
+        </div>
+    </div>
+</body>
+</html>
