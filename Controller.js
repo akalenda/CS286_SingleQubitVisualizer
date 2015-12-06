@@ -21,7 +21,7 @@ define([
         };
 
         /* *************************** Angular fields *******************************************/
-        this.stateVec = "\\sqrt{1/2} |u> + \\sqrt{1/2} |v>";
+        this.stateVec = "sqrt(1/2) |u> + sqrt(1/2) |v>";
         this.basisVec = "|0>";
         this.mathjax_x = "";
         this.mathjax_u = "";
@@ -29,13 +29,13 @@ define([
 
         /* *************************** Angular button functions **************************************************/
         this.stateUpdated = this.basisUpdated = function basisUpdated() {
-            /*var probAmpS = extractProbabilityAmplitudes(that.stateVec, '|u>', '|v>');
-            var probAmpB = extractProbabilityAmplitudes(that.basisVec, '|0>', '|1>');
-            var probAmpP = getVectorPerpendicularTo(probAmpB);
-            stateInStandardBasis.x = probAmpS.x * probAmpB.x + probAmpS.y * probAmpP.x;
-            stateInStandardBasis.y = probAmpS.x * probAmpB.y + probAmpS.y * probAmpP.y;*/
+            var probAmpS = extractProbabilityAmplitudes(that.stateVec, '|u>', '|v>');
+            var probAmpU = extractProbabilityAmplitudes(that.basisVec, '|0>', '|1>');
+            var probAmpV = getVectorPerpendicularTo(probAmpU);
+            stateInStandardBasis.x = (probAmpS.x * probAmpU.x) + (probAmpS.y * probAmpV.x);
+            stateInStandardBasis.y = (probAmpS.x * probAmpU.y) + (probAmpS.y * probAmpV.y);
             // TODO: Uncomment preceding. Remove this test bit:
-            stateInStandardBasis = {x: 0.707, y: 0.707};
+            //stateInStandardBasis = {x: 0.707, y: 0.707};
             redrawGraph();
         };
 
@@ -100,30 +100,32 @@ define([
         };
 
         Plotly.newPlot('polarChart', data, layout);
-        this.stateUpdated();
 
         /* ************************* Helper functions **********************************/
 
         function extractProbabilityAmplitudes(parseVector, basisVector, perpVector) {
             var firstSplit = parseVector.split(basisVector); // TODO: Built-in standard and plus-minus basis
             var probAmp0 = firstSplit[0];
-            var secondSplit = firstSplit[1].split(perpVector);
+            var secondSplit = (firstSplit[1] ? firstSplit[1] : parseVector).split(perpVector);
             var probAmp1 = secondSplit[0];
-            return {
-                x: parseIntFrom(probAmp0),
-                y: parseIntFrom(probAmp1)
+            function validate(split, probAmp) {
+                if (split.length == 1)
+                    return 0;
+                if (probAmp === "")
+                    return 1;
+                return evaluateMathLex(MathLex.parse(probAmp));
             }
-        }
-
-        function parseIntFrom(latex) {
-            var evaluation = MathLex.render(MathLex.parse(latex), 'sage');
-            return evaluation == "" ? 1 : parseInt(evaluation);
+            return {
+                x: validate(firstSplit, probAmp0),
+                y: validate(secondSplit, probAmp1)
+            };
         }
 
         function getVectorPerpendicularTo(u) {
+            var offset = radiansFromDegrees(90);
             return {
-                x: Math.cos(Math.acos(u.x) + 180),
-                y: Math.sin(Math.asin(u.y) + 180)
+                x: Math.cos(Math.acos(u.x) + offset),
+                y: Math.sin(Math.asin(u.y) + offset)
             };
         }
 
@@ -132,7 +134,7 @@ define([
             data[0].t = [];
             data[1].r = [];
             data[1].t = [];
-            for (var theta = 0; theta <= 360; theta += 5) {
+            for (var theta = 0; theta <= 360; theta += 3) {
                 var probAmp = getProbabilityAmplitudeOfMeasurementAt(theta);
                 data[0].t.push(theta);
                 data[1].t.push(theta);
@@ -154,11 +156,46 @@ define([
         }
 
         function angleToVector(theta) {
-            var radians = theta * 0.0174533;
+            var radians = radiansFromDegrees(theta);
             return {
                 x: Math.cos(radians),
                 y: Math.sin(radians)
             };
         }
+
+        function radiansFromDegrees(deg) {
+            return deg * 0.0174533;
+        }
+
+        /* *************************** LaTex parsing ************************************************/
+        var jsFuncFor = {
+            sqrt    : function sqrt    (x)  { return Math.sqrt(x);  },
+            sin     : function sin     (x)  { return Math.sin(x);  },
+            cos     : function cos     (x)  { return Math.cos(x);  },
+            Variable: function Variable(x)  { return x; },
+            Function: function Function(x,y){ return jsFuncFor[x](y); },
+            Literal : function Literal (x,y){ return y;  },
+            Plus    : function Plus    (x,y){ return x + y;  },
+            Minus   : function Minus   (x,y){ return x - y;  },
+            Positive: function Positive(x)  { return x; },
+            Negative: function Negative(x)  { return -x;  },
+            Times   : function Times   (x,y){ return x * y;  },
+            Divide  : function Divide  (x,y){ return x / y;  }
+        };
+
+        function evaluateMathLex(mathlex) {
+            if ($.isArray(mathlex[0]))
+                mathlex = mathlex[0];
+            var f = jsFuncFor[mathlex[0]];
+            if (!f)
+                return mathlex;
+            var x = mathlex[1] ? evaluateMathLex(mathlex[1]) : null;
+            var y = mathlex[2] ? evaluateMathLex(mathlex[2]) : null;
+            return f(x,y);
+        }
+
+
+        /* *************************** After everything's ready, initialize ************************/
+        this.stateUpdated();
     });
 });
