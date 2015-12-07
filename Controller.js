@@ -9,6 +9,23 @@ define([
         angular.bootstrap(document, ['ADTDeltaProject']);
     });
 
+    module.directive("mathjaxBind", function() {
+        return {
+            restrict: "A",
+            controller: ["$scope", "$element", "$attrs",
+                function($scope, $element, $attrs) {
+                    $scope.$watch($attrs.mathjaxBind, function(texExpression) {
+                        var texScript = angular.element("<script type='math/tex'>")
+                            .html(texExpression ? texExpression :  "");
+                        $element.html("");
+                        $element.append(texScript);
+                        MathJax.Hub.Queue(["Reprocess", MathJax.Hub, $element[0]]);
+                        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+                    });
+                }]
+        };
+    });
+
     /**
      *
      */
@@ -24,6 +41,7 @@ define([
         this.stateVec = "sqrt(1/2) |u> + sqrt(1/2) |v>";
         this.basisVec = "|0>";
         this.mathjax_x = "";
+        this.mathjax_xStandard = "";
         this.mathjax_u = "";
         this.mathjax_v = "";
 
@@ -34,9 +52,11 @@ define([
             var probAmpV = getVectorPerpendicularTo(probAmpU);
             stateInStandardBasis.x = (probAmpS.x * probAmpU.x) + (probAmpS.y * probAmpV.x);
             stateInStandardBasis.y = (probAmpS.x * probAmpU.y) + (probAmpS.y * probAmpV.y);
-            // TODO: Uncomment preceding. Remove this test bit:
-            //stateInStandardBasis = {x: 0.707, y: 0.707};
             redrawGraph();
+            that.mathjax_x         = toLatex(probAmpS, "|x\\rangle=", "|u\\rangle", "|v\\rangle");
+            that.mathjax_xStandard = toLatex(stateInStandardBasis, "|x\\rangle\\approx", "|0\\rangle", "|1\\rangle");
+            that.mathjax_u         = toLatex(probAmpU, "|u\\rangle=", "|0\\rangle", "|1\\rangle");
+            that.mathjax_v         = toLatex(probAmpV, "|v\\rangle\\approx", "|0\\rangle", "|1\\rangle");
         };
 
         /* *************************** Initialize Chart **************************************/
@@ -108,16 +128,20 @@ define([
             var probAmp0 = firstSplit[0];
             var secondSplit = (firstSplit[1] ? firstSplit[1] : parseVector).split(perpVector);
             var probAmp1 = secondSplit[0];
-            function validate(split, probAmp) {
+            function toMathLex(split, probAmp) {
                 if (split.length == 1)
-                    return 0;
+                    return "0";
                 if (probAmp === "")
-                    return 1;
-                return evaluateMathLex(MathLex.parse(probAmp));
+                    return "1";
+                return MathLex.parse(probAmp);
             }
+            var probAmp0mathlex = toMathLex(firstSplit, probAmp0);
+            var probAmp1mathlex = toMathLex(secondSplit, probAmp1);
             return {
-                x: validate(firstSplit, probAmp0),
-                y: validate(secondSplit, probAmp1)
+                x: evaluateMathLex(probAmp0mathlex),
+                y: evaluateMathLex(probAmp1mathlex),
+                xLex: probAmp0mathlex,
+                yLex: probAmp1mathlex
             };
         }
 
@@ -165,6 +189,22 @@ define([
 
         function radiansFromDegrees(deg) {
             return deg * 0.0174533;
+        }
+
+        function toLatex(vector, leftSideOfEquation, basisU, basisV) {
+            var coeffU = (vector.xLex && !$.isNumeric(vector.xLex)) ? MathLex.render(vector.xLex, "latex") : approximateToZeroOrOne(vector.x);
+            var coeffV = (vector.yLex && !$.isNumeric(vector.yLex)) ? MathLex.render(vector.yLex, "latex") : approximateToZeroOrOne(vector.y);
+            return leftSideOfEquation + coeffU + " " + basisU + " + " + coeffV + " " + basisV;
+        }
+
+        function approximateToZeroOrOne(number) {
+            if (Math.abs(number - 0) < 0.000001)
+                return 0;
+            if (Math.abs(number - 1) < 0.000001)
+                return 1;
+            if (Math.abs(number + 1) < 0.000001)
+                return -1;
+            return number;
         }
 
         /* *************************** LaTex parsing ************************************************/

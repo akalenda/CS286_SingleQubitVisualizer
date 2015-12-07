@@ -37,9 +37,10 @@
             </div>
         </div>
         <div id="MathJaxRepresentations">
-            <span>$${{ctrl.stateVec}}$$</span><br/>
-            <span>$${{ctrl.basisVec}}$$</span><br/>
-            <span>$${{ctrl.basisVecPerp}}$$</span><br/>
+            <span mathjax-bind="ctrl.mathjax_x"></span><br/>
+            <span mathjax-bind="ctrl.mathjax_xStandard"></span><br/>
+            <span mathjax-bind="ctrl.mathjax_u"></span><br/>
+            <span mathjax-bind="ctrl.mathjax_v"></span><br/>
         </div>
     </div>
 </body>
