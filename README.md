@@ -63,9 +63,9 @@ being able to switch the plot between those two cycle patterns, giving a differe
 which would show a different curve, and perhaps even give different insights.
     
 Some pairs of angles on the graph will duplicate the same state vector, but this is acceptable.
-More importantly the transitions from one state to the next would be continuous. Assuming, of
-course, that I am thinking correctly about this stuff and haven't blundered past a significant
-drawback...
+More importantly the transitions from one state to the next would be continuous. I have also
+visually confirmed that in this scheme, opposing states would appear across from one another
+on the graph (e.g. |+0-1> and |-0+1> are 180 degrees from one another).
 
 ## Are there any other improvements that could be made?
 
