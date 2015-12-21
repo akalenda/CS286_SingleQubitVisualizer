@@ -2,6 +2,8 @@
 
 A simple application I was tinkering with for my Quantum Computation class, used to reason about a single qubit.
 
+![](https://raw.githubusercontent.com/akalenda/CS286_SingleQubitVisualizer/master/screenshot.png)
+
 ## What is it written in?
 
 Javascript and HTML5/CSS. Libraries used include Angular JS, Plotly, Bootstrap, MathLex, and RequireJS.
